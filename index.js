@@ -21,19 +21,28 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, 'Привет! Отправьте свое местоположение, чтобы определить ближайшее море или пролив.');
 });
 
-// Обработчик местоположения пользователя
-bot.onLocation((msg) => {
+// Обработчик команды /location
+bot.onText(/\/location/, (msg) => {
   const chatId = msg.chat.id;
-  const latitude = msg.location.latitude;
-  const longitude = msg.location.longitude;
+  const userId = msg.from.id;
 
-  // Находим ближайшее море или пролив
-  const nearestSeaOrStrait = geolib.findNearest({ latitude, longitude }, seasAndStraits);
+  bot.sendMessage(chatId, 'Пожалуйста, отправьте свое местоположение.');
 
-  // Отправляем сообщение с ближайшим морем или проливом
-  if (nearestSeaOrStrait) {
-    bot.sendMessage(chatId, `Ближайшее море или пролив: ${nearestSeaOrStrait.name}`);
-  } else {
-    bot.sendMessage(chatId, 'Не удалось найти ближайшее море или пролив.');
-  }
+  // Ожидаем местоположение пользователя
+  bot.once('location', (locationMsg) => {
+    const location = locationMsg.location;
+
+    // Находим ближайшее море или пролив
+    const nearestSeaOrStrait = geolib.findNearest({ latitude: location.latitude, longitude: location.longitude }, seasAndStraits);
+
+    // Отправляем сообщение с ближайшим морем или проливом
+    if (nearestSeaOrStrait) {
+      bot.sendMessage(chatId, `Ближайшее море или пролив: ${nearestSeaOrStrait.name}`);
+    } else {
+      bot.sendMessage(chatId, 'Не удалось найти ближайшее море или пролив.');
+    }
+  });
+
+  // Запрашиваем местоположение
+  bot.sendLocation(chatId, 'Пожалуйста, отправьте свое местоположение.');
 });
